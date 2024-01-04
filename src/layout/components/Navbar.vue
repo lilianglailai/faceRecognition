@@ -99,9 +99,15 @@ export default {
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                this.$store.dispatch('LogOut').then(() => {
-                    location.href = '/index';
+                this.apiFn({
+                    url: '/user/logout',
+                    method: 'post',
+                }).then(() => {
+                    this.$store.dispatch('LogOut').then(() => {
+                        location.href = '/index';
+                    })
                 })
+
             }).catch(() => { });
         }
     }

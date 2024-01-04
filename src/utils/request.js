@@ -118,7 +118,7 @@ service.interceptors.response.use(res => {
     if (res.request.responseType ===  'blob' || res.request.responseType ===  'arraybuffer') {
       return res.data
     }
-    if (code === 401) {
+    if (msg === 'token error') {
       if (!isRelogin.show) {
         isRelogin.show = true;
         MessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', { confirmButtonText: '重新登录', cancelButtonText: '取消', type: 'warning' }).then(() => {
@@ -131,13 +131,7 @@ service.interceptors.response.use(res => {
       });
     }
       return Promise.reject('无效的会话，或者会话已过期，请重新登录。')
-    } else if (code === 500) {
-      Message({ message: msg, type: 'error' })
-      return Promise.reject(res.data)
-    } else if (code === 601) {
-      Message({ message: msg, type: 'warning' })
-      return Promise.reject(res.data)
-    } else if (code !== 1) {
+    }  else if (code !== 1) {
      console.log("失败了");
       Notification.error({ title: msg })
       return Promise.reject(res.data)

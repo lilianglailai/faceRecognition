@@ -149,7 +149,7 @@ export const constantRoutes = [
         meta: {
           title: "用户列表",
           icon: "user",
-          noCache: false,
+          
           link: null,
         }, 
       },

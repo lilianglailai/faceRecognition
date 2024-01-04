@@ -1,29 +1,18 @@
 <template>
     <div class="user">
-        <avue-crud :data="data" v-model="form" :option="option" :table-loading="loading" :before-open="beforeOpen" @on-load="onLoad" @row-update="rowUpdate" @row-save="rowSave"
-                   @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange" @row-del="rowDel">
-            <template slot="avatar1Form">
-                <v-upload :src.sync="form.imgUrl" :obj.sync="form.fileObject" :type="type"></v-upload>
-            </template>
+        <avue-crud :data="data" v-model="form" :option="option" :table-loading="loading" :before-open="beforeOpen" @search-change="searchChange" @on-load="onLoad" @row-update="rowUpdate"
+                   @row-save="rowSave" @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange" @search-reset="searchReset" @row-del="rowDel">
         </avue-crud>
-        <userPassword ref="userPassword"></userPassword>
     </div>
 </template>
 
 <script>
-import COS from 'cos-js-sdk-v5'
-import userPassword from "./userPassword.vue";
-import VUpload from '@/components/vUpload/vUpload.vue';
-import { mapGetters } from "vuex";
+
+
+
+
 export default {
     name: 'AdminUser',
-    components: {
-        userPassword,
-        VUpload
-    },
-    computed: {
-        ...mapGetters(['userInfo'])
-    },
     data() {
         return {
             form: {},
@@ -52,18 +41,18 @@ export default {
 
                     },
                     {
-                        label: '账号',
+                        label: 'userToken',
                         prop: 'userToken',
                         rules: [
-                            { required: true, message: "请输入账号", trigger: "blur" }
+                            { required: true, trigger: "blur" }
                         ],
                         row: true,
                     },
                     {
-                        label: '密码',
+                        label: 'appToken',
                         prop: 'appToken',
                         rules: [
-                            { required: true, message: "请输入账号", trigger: "blur" }
+                            { required: true, trigger: "blur" }
                         ],
                         row: true,
                     },
@@ -74,6 +63,7 @@ export default {
                         rules: [
                             { required: true, message: "请输入昵称", trigger: "blur" }
                         ],
+                        search: true,
                         row: true,
                     },
                     {
@@ -111,7 +101,8 @@ export default {
                             { required: true, trigger: "blur" }
                         ],
                         row: true,
-                        required: true
+                        required: true,
+                        alone: true
                     },
 
 
@@ -121,77 +112,11 @@ export default {
     },
 
     methods: {
-        handlePassword(row) {
-            if (this.userInfo.isSuperAdmin) {
-                this.$refs.userPassword.option.column[0].display = false
-                this.$refs.userPassword.form.userId = row.userId
-            }
-            this.$refs.userPassword.init()
+        searchReset() {
+            this.query = {};
+            this.onLoad(this.page);
         },
 
-
-        RequestUploadFile() {
-
-            return new Promise((resolve, reject) => {
-
-                if (this?.form?.fileObject?.raw && Object.values(this.form?.fileObject?.raw).length) {
-                    this.apiFn({
-                        url: '/adminApi/FileObject/RequestUploadFile',
-                        method: 'post',
-                        data: {
-                            fileType: 1,
-                            fileExtension: this.form?.fileObject?.raw?.type.includes('png') ? 'png' : 'jpeg'
-                        },
-                    }).then(
-                        (res) => {
-                            let fileObj = res.data
-
-                            let cos = new COS({
-                                SecretId: fileObj.tmpSecretId, //查看cos文档获取
-                                SecretKey: fileObj.tmpSecretKey, //查看cos文档获取
-                                SecurityToken: fileObj.token
-                            })
-                            cos.putObject(
-                                {
-                                    Bucket: fileObj.bucket /* 必须:存储桶 */,
-                                    Region: fileObj.region /* 存储桶所在地域，必须字段 */,
-                                    Key: fileObj.objectPath /* 必须 :目录/文件名 */,
-                                    StorageClass: 'STANDARD', // 上传模式
-                                    Body: this.form?.fileObject?.raw // 上传文件对象
-                                },
-                                (err, data) => {
-                                    if (err) {
-
-                                        this.$message({
-                                            message: '发送错误请进行系统反馈',
-                                            type: 'error'
-                                        })
-                                        reject()
-                                    }
-                                    if (data) {
-
-                                        resolve(fileObj.fileId)
-                                    }
-                                }
-                            )
-
-                        },
-                        err => {
-
-                            this.$message({
-                                message: '请重试',
-                                type: 'warning'
-                            })
-                            reject()
-                        }
-                    )
-                } else {
-                    resolve()
-                }
-            })
-
-
-        },
         rowDel(row) {
             this.$confirm("确定将选择数据删除?", {
                 confirmButtonText: "确定",
@@ -199,9 +124,14 @@ export default {
                 type: "warning"
             }).then(() => {
                 return this.apiFn({
-                    url: '/adminApi/AdminUser/DeleteAdminUser',
+                    url: '/video/deleteUser',
                     method: 'post',
-                    data: { IdList: [row.userId] },
+                    data: {
+                        "userToken": row.userToken,
+                        "appToken": row.appToken,
+                        "name": row.name,
+                        "cardId": row.cardId
+                    },
                 })
             }).then(() => {
                 this.onLoad(this.page);
@@ -212,66 +142,52 @@ export default {
             });
         },
         async rowUpdate(row, index, done, loading) {
-            this.RequestUploadFile().then(res => {
-                if (res) {
-                    row.avatarFileId = res
-                } else if (!row.imgUrl) {
-                    row.avatarFileId = ""
+
+            this.apiFn({
+                url: '/adminApi/AdminUser/UpdateAdminUser',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+
+                    loading();
                 }
+            );
 
-                this.apiFn({
-                    url: '/adminApi/AdminUser/UpdateAdminUser',
-                    method: 'post',
-                    data: {
-                        ...row
-                    },
-                }).then(
-                    () => {
-                        this.onLoad(this.page);
-                        this.$message({
-                            type: "success",
-                            message: "操作成功!",
-                        });
-                        done();
-                    },
-                    (error) => {
-
-                        loading();
-                    }
-                );
-            }).catch(err => {
-                loading()
-            })
         },
         rowSave(row, done, loading) {
-            this.RequestUploadFile().then(res => {
-                if (res) {
-                    row.avatarFileId = res
-                }
 
-                this.apiFn({
-                    url: '/video/addUser',
-                    method: 'post',
-                    data: {
-                        ...row
-                    },
-                }).then(
-                    () => {
-                        this.onLoad(this.page);
-                        this.$message({
-                            type: "success",
-                            message: "操作成功!",
-                        });
-                        done();
-                    },
-                    (error) => {
-                        window.console.log(error);
-                        loading();
-                    }
-                );
-            }).catch(err => {
-                loading()
-            })
+            this.apiFn({
+                url: '/video/addUser',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+                    window.console.log(error);
+                    loading();
+                }
+            );
+
         },
         beforeOpen(done, type) {
 
@@ -302,7 +218,14 @@ export default {
         refreshChange() {
             this.onLoad(this.page, this.query);
         },
+        searchChange(params, done) {
+            this.query = params;
+            this.page.currentPage = 1;
+            this.onLoad(this.page, params);
+            done();
+        },
         onLoad(page, params = {}) {
+            this.loading = true;
             let values = {
                 ...params,
 
@@ -312,7 +235,7 @@ export default {
             this.apiFn({
                 url: '/video/getUser',
                 method: 'post',
-
+                data: values
             }).then(res => {
                 const data = res;
 

@@ -73,8 +73,7 @@ const user = {
 
     // 退出系统
     LogOut({ commit, state }) {
-      return new Promise((resolve, reject) => {
-          Cookies.remove('userInfo')
+      return new Promise((resolve, reject) => { 
           removeToken()
           resolve()
       })
