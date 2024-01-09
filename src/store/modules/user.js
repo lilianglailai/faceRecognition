@@ -7,7 +7,7 @@ const user = {
     token: getToken(),
  
  
-    rescode:localStorage.getItem('rescode')?localStorage.getItem('rescode') :"",
+    username:localStorage.getItem('username')?localStorage.getItem('username') :"",
     roles: [],
     permissions: [],
     userInfo:Cookies.get('userInfo')? JSON.parse(Cookies.get('userInfo')) :{}
@@ -28,8 +28,8 @@ const user = {
       state.permissions = permissions
     },
     
-    SET_rescode: (state, permissions) => {
-        state.rescode = permissions
+    SET_username: (state, permissions) => {
+        state.username = permissions
       },
   },
 
@@ -41,7 +41,8 @@ const user = {
           console.log(res);
           commit('SET_TOKEN', res.token)
           setToken(res.token)
-          commit('SET_rescode', res.rescode)
+          commit('SET_username', userInfo.username)
+          window.localStorage.setItem('username', userInfo.username)
           resolve()
         }).catch(error => {
           reject(error)

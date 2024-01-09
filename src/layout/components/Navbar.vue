@@ -19,13 +19,13 @@
             </template>
             <el-dropdown class="avatar-container right-menu-item hover-effect" trigger="click">
                 <div class="avatar-wrapper">
-                    <img :src="userInfo.avatar? $imgUrl +userInfo.avatar :img" class="user-avatar">
+                    <img :src="img" class="user-avatar">
                     <i class="el-icon-caret-bottom" />
                 </div>
                 <el-dropdown-menu slot="dropdown">
-                    <router-link to="/system/profile" v-if="userInfo.nickName">
-                        <el-dropdown-item>{{userInfo.nickName}}</el-dropdown-item>
-                    </router-link>
+                    <span v-if="username">
+                        <el-dropdown-item>{{username}}</el-dropdown-item>
+                    </span>
                     <el-dropdown-item @click.native="setting = true">
                         <span>布局设置</span>
                     </el-dropdown-item>
@@ -70,7 +70,7 @@ export default {
             'sidebar',
 
             'device',
-            'userInfo'
+            'username'
         ]),
         setting: {
             get() {

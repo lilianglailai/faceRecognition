@@ -48,15 +48,18 @@ axios.interceptors.request.use(config => {
 // request拦截器
 service.interceptors.request.use(config => {
   // 是否需要设置 token
-  if (!config.data) {
-    config.data={}
-    config.data.token=getToken()
+  if ( getToken()) {
+    if (!config.data ) {
+        config.data={}
+        config.data.token=getToken()
+      }
+     
+      if (typeof config.data === 'object') {
+        
+        config.data.token=getToken()
+      }
   }
  
-  if (typeof config.data === 'object') {
-    
-    config.data.token=getToken()
-  }
 
   const isToken = (config.headers || {}).isToken === false
   // 是否需要防止数据重复提交

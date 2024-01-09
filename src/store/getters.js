@@ -14,6 +14,6 @@ const getters = {
   topbarRouters:state => state.permission.topbarRouters,
   defaultRoutes:state => state.permission.defaultRoutes,
   sidebarRouters:state => state.permission.sidebarRouters,
-  userInfo:state => state.user.userInfo
+  username:state => state.user.username
 }
 export default getters

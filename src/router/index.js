@@ -98,22 +98,40 @@ export const constantRoutes = [
 //       },
 //     ],
 //   },
-//   {
-//     path: "/",
-//     component: Layout,
-//     redirect: "/Feedback",
-//     children: [
-//       {
-//         path: "Feedback",
-//         component: () => import("@/views/Feedback/Feedback"),
-//         name: "Feedback",
-//         meta: { title: "反馈列表",
-//         icon: "build",
-//         noCache: false,
-//         link: null,},
-//       },
-//     ],
-//   },
+  {
+    path: "/",
+    component: Layout,
+    redirect: "/Feedback",
+    children: [
+      {
+        path: "Feedback",
+        component: () => import("@/views/Feedback/Feedback"),
+        name: "Feedback",
+        meta: { title: "人员底库信息",
+        icon: "build",
+        noCache: false,
+        link: null,},
+      },
+    ],
+  },
+
+  {
+    path: "/",
+    component: Layout,
+    redirect: "/accessManagement",
+    children: [
+      {
+        path: "accessManagement",
+        component: () => import("@/views/accessManagement/accessManagement"),
+        name: "accessManagement",
+        meta: { 
+            title: "接入管理",
+        icon: "build",
+        noCache: false,
+        link: null,},
+      },
+    ],
+  },
   {
     name: "System",
     path: "/system",
@@ -147,36 +165,25 @@ export const constantRoutes = [
         hidden: false,
         component: () => import("@/views/system/AdminUser/AdminUser"),
         meta: {
-          title: "用户列表",
+          title: "管理员列表",
           icon: "user",
           
           link: null,
         }, 
       },
-    //   {
-    //     name: "user",
-    //     path: "user",
-    //     hidden: false,
-    //     component: () => import("@/views/system/user/user"),
-    //     meta: {
-    //       title: "用户列表",
-    //       icon: "user",
-    //       noCache: false,
-    //       link: null,
-    //     }, 
-    //   },
-    //   {
-    //     name: "ListCreator",
-    //     path: "ListCreator",
-    //     hidden: false,
-    //     component: () => import("@/views/system/ListCreator/ListCreator"),
-    //     meta: {
-    //       title: "创作者列表",
-    //       icon: "user",
-    //       noCache: false,
-    //       link: null,
-    //     }, 
-    //   },
+      {
+        name: "user",
+        path: "user",
+        hidden: false,
+        component: () => import("@/views/system/user/user"),
+        meta: {
+          title: "人员列表",
+          icon: "user",
+          noCache: false,
+          link: null,
+        }, 
+      },
+    
     //   {
     //     hidden: true,
     //     path: 'profile',
@@ -186,28 +193,56 @@ export const constantRoutes = [
     //   }
     ],
   },
-//   {
-//     path: "/",
-//     component: Layout,
-//     redirect: "/UpdateCommonFile",
-//     children: [
-//       {
-//         path: "UpdateCommonFile",
-//         component: () => import("@/views/UpdateCommonFile/UpdateCommonFile"),
-//         name: "UpdateCommonFile",
-//         meta: { title: "更新通用文件",
-//         icon: "build",
-//         noCache: false,
-//         link: null,},
-//       },
-//     ],
-//   },
   {
-    path: "/user",
+    path: "/",
     component: Layout,
-    hidden: true,
-    redirect: "noredirect",
+    redirect: "/user",
+    children: [
+      {
+        path: "user",
+        component: () => import("@/views/system/user/user"),
+        name: "user",
+        meta: { title: "人脸库信息",
+        icon: "build",
+        noCache: false,
+        link: null,},
+      },
+    ],
   },
+  {
+    path: "/",
+    component: Layout,
+    redirect: "/ListCreator",
+    children: [
+      {
+        path: "ListCreator",
+        component: () => import("@/views/system/ListCreator/ListCreator"),
+        name: "ListCreator",
+        meta: { title: "警告数据",
+        icon: "build",
+        noCache: false,
+        link: null,},
+      },
+    ],
+  },
+// {
+//     name: "ListCreator",
+//     path: "ListCreator",
+//     hidden: false,
+//     component: () => import("@/views/system/ListCreator/ListCreator"),
+//     meta: {
+//       title: "警告数据",
+//       icon: "user",
+//       noCache: true,
+//       link: null,
+//     }, 
+//   },
+//   {
+//     path: "/user",
+//     component: Layout,
+//     hidden: true,
+//     redirect: "noredirect",
+//   },
 ];
 
 // 动态路由，基于用户权限动态去加载

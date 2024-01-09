@@ -1,75 +1,151 @@
 <template>
-    <div>
-        <avue-crud :data="data" v-model="form" :option="option" :page.sync="page" :table-loading="loading" :before-open="beforeOpen" @on-load="onLoad" @current-change="currentChange" @row-del="rowDel"
-                   @size-change="sizeChange" @refresh-change="refreshChange">
+    <div class="user">
+        <div style="margin-bottom: 10px;">
+            人员底库总量： <span></span> {{ Sum }}
+        </div>
+        <avue-crud :data="data" v-model="form" :option="option" :page.sync="page" :table-loading="loading" :before-open="beforeOpen" @search-change="searchChange" @row-update="rowUpdate"
+                   @row-save="rowSave" @size-change="sizeChange" @search-reset="searchReset" @row-del="rowDel">
         </avue-crud>
     </div>
 </template>
 
-<script>
+<script> 
+import { getToken } from '@/utils/auth'
 export default {
-    name: 'Feedback',
+    name: 'ListCreator',
     data() {
         return {
-            type: '',
+            Sum: undefined,
             form: {},
             query: {},
-            loading: true,
+            loading: false,
             page: {
-                pageSize: 10,
+                pageSize: 999,
                 currentPage: 1,
                 total: 0,
             },
+            type: 'view',
             data: [],
             option: {
                 align: 'center',
+                viewBtn: true,
+                delBtn: false,
+                labelWidth: 140,
                 addBtn: false,
                 editBtn: false,
-                delBtn: true,
-                viewBtn: true,
                 column: [
+
                     {
 
-                        label: 'id',
-                        prop: 'id',
-
-                        row: true,
-
-                    },
-                    {
-
-                        label: '手机号',
-                        prop: 'phone',
+                        label: 'idNumber',
+                        prop: 'idNumber',
                         rules: [
-                            { required: true, message: "请输入昵称", trigger: "blur" }
+                            { required: true, trigger: "blur" }
                         ],
-                        row: true,
+                        hide: true,
+                        display: false,
+                        search: true
+
 
                     },
                     {
-                        label: "邮箱",
-                        prop: "email",
-                        width: 150,
-                        row: true,
-                    },
-                    {
 
-                        label: '内容',
-                        prop: 'content',
+                        label: 'cardid',
+                        prop: 'cardid',
                         rules: [
-                            { required: true, message: "请输入内容", trigger: "blur" }
+                            { required: true, trigger: "blur" }
                         ],
-                        type: 'textarea'
+
+
+                    },
+                    {
+
+                        label: '性别',
+                        prop: 'gender',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+                    {
+
+                        label: '姓名',
+                        prop: 'name',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+                    {
+
+                        label: 'position',
+                        prop: 'position',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+
+                    {
+
+                        label: '会员身份',
+                        prop: 'membership',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+                    {
+
+                        label: '类型',
+                        prop: 'type',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
 
                     },
 
 
+
+
+                    {
+
+                        label: '图片',
+                        prop: 'image',
+                        type: "img",
+                        alone: true,
+
+                    },
                 ]
-            }
-        };
-
+            },
+        }
+    },
+    created() {
+        this.faceSum()
     },
     methods: {
+        searchReset() {
+            this.query = {};
+            // this.onLoad(this.page);
+        },
+        faceSum() {
+            this.apiFn({
+                url: '/face/faceSum',
+                method: 'post',
+
+            }).then(
+                (res) => {
+                    this.Sum = res.faceSum
+
+                },
+
+            );
+        },
         rowDel(row) {
             this.$confirm("确定将选择数据删除?", {
                 confirmButtonText: "确定",
@@ -77,9 +153,14 @@ export default {
                 type: "warning"
             }).then(() => {
                 return this.apiFn({
-                    url: '/adminApi/Feedback/DeleteFeedback',
+                    url: '/video/deleteUser',
                     method: 'post',
-                    data: { IdList: [row.id] },
+                    data: {
+                        "userToken": row.userToken,
+                        "appToken": row.appToken,
+                        "name": row.name,
+                        "cardId": row.cardId
+                    },
                 })
             }).then(() => {
                 this.onLoad(this.page);
@@ -89,20 +170,67 @@ export default {
                 });
             });
         },
+        async rowUpdate(row, index, done, loading) {
+            this.apiFn({
+                url: '/video/updateUser',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+
+                    loading();
+                }
+            );
+
+        },
+        rowSave(row, done, loading) {
+
+            this.apiFn({
+                url: '/video/add',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+                    window.console.log(error);
+                    loading();
+                }
+            );
+
+        },
         beforeOpen(done, type) {
+
             this.type = type
+
             // if (["edit", "view"].includes(type)) {
             //     this.apiFn({
-            //         url: '/adminApi/User/GetUser',
-            //         method: 'get',
-            //         params: {
-            //             id: this.form.id
+            //         url: '/alarm/detail',
+            //         method: 'post',
+            //         data: {
+            //             idCode: this.form.idCode
             //         }
             //     }).then((res) => {
-            //         this.form = res.data;
-            //         this.form.imgUrl = this.$imgUrl + this.form.avatar
-            //         // this.$set(this.form, 'imgUrl', this.$imgUrl + this.form.avatar)
-
+            //         this.form = res.alarm;
+            //         done();
             //     });
             // }
             done();
@@ -116,24 +244,33 @@ export default {
         refreshChange() {
             this.onLoad(this.page, this.query);
         },
+        searchChange(params, done) {
+            this.query = params;
+            this.page.currentPage = 1;
+            this.onLoad(this.page, params);
+            done();
+        },
         onLoad(page, params = {}) {
-            let values = {
-                ...params,
-
-            };
-
             this.loading = true;
+            let url = '/face'
+            let values = {
+                ...this.query
+            };
+            if (Object.values(params).length) {
+
+                values = params
+            }
+
+
+
             this.apiFn({
-                url: '/adminApi/Feedback/ListFeedback',
+                url: url,
                 method: 'post',
-                data: {
-                    pageIndex: page.currentPage,
-                    pageSize: page.pageSize
-                }
+                data: values
             }).then(res => {
-                const data = res.data;
-                this.page.total = data.totalCount;
-                this.data = data.feedbackList;
+                let data = res;
+                this.data = [data.faceInfo]
+
                 this.loading = false;
 
             });
@@ -143,3 +280,4 @@ export default {
 </script>
 <style scoped lang='scss'>
 </style>
+ 

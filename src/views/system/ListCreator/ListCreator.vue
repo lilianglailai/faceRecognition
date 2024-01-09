@@ -1,184 +1,150 @@
-
-<template  >
-    <div>
-        <avue-crud :data="data" v-model="form" :option="option" :page.sync="page" :table-loading="loading" :before-open="beforeOpen" @on-load="onLoad" @row-update="rowUpdate" @row-save="rowSave"
-                   @row-del="rowDel" @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange">
-            <template slot="avatar" slot-scope="{row}">
-                <vimg :src="row.avatar"></vimg>
-            </template>
-            <template slot="avatar1Form">
-                <v-upload :src.sync="form.imgUrl" :obj.sync="form.fileObject" :type="type"></v-upload>
-            </template>
+<template>
+    <div class="user">
+        <avue-crud :data="data" v-model="form" :option="option" :page.sync="page" :table-loading="loading" :before-open="beforeOpen" @search-change="searchChange" @on-load="onLoad"
+                   @row-update="rowUpdate" @row-save="rowSave" @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange" @search-reset="searchReset" @row-del="rowDel">
         </avue-crud>
     </div>
 </template>
 
-
-<script>
-import VUpload from '@/components/vUpload/vUpload.vue';
-import COS from 'cos-js-sdk-v5'
+<script> 
+import { getToken } from '@/utils/auth'
 export default {
-    name: "ListCreator",
-    components: {
-        VUpload
-    },
+    name: 'ListCreator',
     data() {
         return {
-            type: '',
             form: {},
             query: {},
             loading: true,
             page: {
-                pageSize: 10,
+                pageSize: 999,
                 currentPage: 1,
                 total: 0,
             },
+            type: 'view',
             data: [],
             option: {
                 align: 'center',
-                addBtn: true,
-                delBtn: true,
                 viewBtn: true,
+                delBtn: false,
+                labelWidth: 140,
+                editBtn: false,
                 column: [
                     {
 
-                        label: 'id',
-                        prop: 'id',
-
-                        row: true,
-                        display: false,
-                    },
-                    {
-
-                        label: '昵称',
-                        prop: 'nickName',
+                        label: 'idCode',
+                        prop: 'idCode',
                         rules: [
-                            { required: true, message: "请输入昵称", trigger: "blur" }
+                            { required: true, trigger: "blur" }
                         ],
-                        row: true,
+
 
                     },
-
                     {
-                        label: "头像",
-                        prop: "avatar",
-                        width: 150,
-                        display: false
+                        type: 'datetime',
+                        label: '报警时间',
+                        prop: 'alarmTime',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+                        format: 'yyyy-MM-dd HH:mm:ss',
+                        valueFormat: 'yyyy-MM-dd HH:mm:ss',
+
+
                     },
-
                     {
-                        label: "头像",
+
+                        label: '报警类型',
+                        prop: 'alarmType',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+                    {
+
+                        label: '设备名称',
+                        prop: 'deviceName',
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+
+
+                    },
+                    {
+                        label: 'appToken',
+                        prop: 'appToken',
+
                         hide: true,
-                        span: 24,
-                        prop: "avatar1",
-                        formslot: true
+                    },
+                    {
+                        label: 'userToken',
+                        prop: 'userToken',
+                        display: false,
+                        hide: true,
+                        valule: getToken()
+                    }
+                    ,
+                    {
+                        label: 'deviceId',
+                        prop: 'deviceId',
+
+                        hide: true,
                     },
                     {
 
-                        label: '说明',
-                        prop: 'description',
-                        span: 24
+                        label: 'deviceId',
+                        prop: 'deviceId',
 
+                        hide: true,
+                    },
+                    {
 
+                        label: 'videoUrl',
+                        prop: 'videoUrl',
+
+                        hide: true,
+                    },
+                    {
+
+                        label: 'alarmId',
+                        prop: 'alarmId',
+
+                        hide: true,
+                    },
+                    {
+
+                        label: 'name',
+                        prop: 'name',
+
+                        hide: true,
+                    },
+                    {
+
+                        label: '数量',
+                        prop: 'level',
+
+                        hide: true,
+                    },
+                    {
+
+                        label: '图片',
+                        prop: 'image',
+                        type: "img",
+                        alone: true,
+                        hide: true,
                     },
                 ]
-            }
-        };
+            },
+        }
     },
+
     methods: {
-        RequestUploadFile() {
-
-            return new Promise((resolve, reject) => {
-
-                if (this?.form?.fileObject?.raw && Object.values(this.form?.fileObject?.raw).length) {
-                    this.apiFn({
-                        url: '/adminApi/FileObject/RequestUploadFile',
-                        method: 'post',
-                        data: {
-                            fileType: 1,
-                            fileExtension: this.form?.fileObject?.raw?.type.includes('png') ? 'png' : 'jpeg'
-                        },
-                    }).then(
-                        (res) => {
-                            let fileObj = res.data
-
-                            let cos = new COS({
-                                SecretId: fileObj.tmpSecretId, //查看cos文档获取
-                                SecretKey: fileObj.tmpSecretKey, //查看cos文档获取
-                                SecurityToken: fileObj.token
-                            })
-                            cos.putObject(
-                                {
-                                    Bucket: fileObj.bucket /* 必须:存储桶 */,
-                                    Region: fileObj.region /* 存储桶所在地域，必须字段 */,
-                                    Key: fileObj.objectPath /* 必须 :目录/文件名 */,
-                                    StorageClass: 'STANDARD', // 上传模式
-                                    Body: this.form?.fileObject?.raw // 上传文件对象
-                                },
-                                (err, data) => {
-                                    if (err) {
-
-                                        this.$message({
-                                            message: '发送错误请进行系统反馈',
-                                            type: 'error'
-                                        })
-                                        reject()
-                                    }
-                                    if (data) {
-
-                                        resolve(fileObj.fileId)
-                                    }
-                                }
-                            )
-
-                        },
-                        err => {
-
-                            this.$message({
-                                message: '请重试',
-                                type: 'warning'
-                            })
-                            reject()
-                        }
-                    )
-                } else {
-                    resolve()
-                }
-            })
-
-
+        searchReset() {
+            this.query = {};
+            this.onLoad(this.page);
         },
-        async rowUpdate(row, index, done, loading) {
-            this.RequestUploadFile().then(res => {
-                if (res) {
-                    row.avatarFileId = res
-                } else if (!row.imgUrl) {
-                    row.avatarFileId = ""
-                }
 
-                row.UserId = row.id
-                this.apiFn({
-                    url: '/adminApi/Creator/UpdateCreator',
-                    method: 'post',
-                    data: {
-                        ...row
-                    },
-                }).then(
-                    () => {
-                        this.onLoad(this.page);
-                        this.$message({
-                            type: "success",
-                            message: "操作成功!",
-                        });
-                        done();
-                    },
-                    (error) => {
-
-                        loading();
-                    }
-                )
-            })
-        },
         rowDel(row) {
             this.$confirm("确定将选择数据删除?", {
                 confirmButtonText: "确定",
@@ -186,9 +152,14 @@ export default {
                 type: "warning"
             }).then(() => {
                 return this.apiFn({
-                    url: '/adminApi/Creator/DeleteCreator',
+                    url: '/video/deleteUser',
                     method: 'post',
-                    data: { IdList: [row.id] },
+                    data: {
+                        "userToken": row.userToken,
+                        "appToken": row.appToken,
+                        "name": row.name,
+                        "cardId": row.cardId
+                    },
                 })
             }).then(() => {
                 this.onLoad(this.page);
@@ -198,57 +169,70 @@ export default {
                 });
             });
         },
-        rowSave(row, done, loading) {
-            this.RequestUploadFile().then(res => {
-                if (res) {
-                    row.avatarFileId = res
+        async rowUpdate(row, index, done, loading) {
+            this.apiFn({
+                url: '/video/updateUser',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+
+                    loading();
                 }
+            );
 
-                this.apiFn({
-                    url: '/adminApi/Creator/AddCreator',
-                    method: 'post',
-                    data: {
-                        ...row
-                    },
-                }).then(
-                    () => {
-                        this.onLoad(this.page);
-                        this.$message({
-                            type: "success",
-                            message: "操作成功!",
-                        });
+        },
+        rowSave(row, done, loading) {
 
-                        done();
-                    },
-                    (error) => {
-                        window.console.log(error);
-                        loading();
-                    }
-                );
-            }).catch(err => {
-                loading()
-            })
+            this.apiFn({
+                url: '/video/add',
+                method: 'post',
+                data: {
+                    ...row
+                },
+            }).then(
+                () => {
+                    this.onLoad(this.page);
+                    this.$message({
+                        type: "success",
+                        message: "操作成功!",
+                    });
+                    done();
+                },
+                (error) => {
+                    window.console.log(error);
+                    loading();
+                }
+            );
+
         },
         beforeOpen(done, type) {
+
             this.type = type
-            // if (["edit", "view"].includes(type)) {
-            //     this.apiFn({
-            //         url: '/adminApi/Creator/GetCreator',
-            //         method: 'get',
-            //         params: {
-            //             id: this.form.id
-            //         }
-            //     }).then((res) => {
-            //         this.form = res.data;
-            if (this.form.avatarFileId) {
-                this.form.imgUrl = this.$imgUrl + this.form.avatar
+
+            if (["edit", "view"].includes(type)) {
+                this.apiFn({
+                    url: '/alarm/detail',
+                    method: 'post',
+                    data: {
+                        idCode: this.form.idCode
+                    }
+                }).then((res) => {
+                    this.form = res.alarm;
+                    done();
+                });
             }
 
-
-
-            //     });
-            // }
-            done();
         },
         currentChange(currentPage) {
             this.page.currentPage = currentPage;
@@ -259,28 +243,47 @@ export default {
         refreshChange() {
             this.onLoad(this.page, this.query);
         },
+        searchChange(params, done) {
+            this.query = params;
+            this.page.currentPage = 1;
+            this.onLoad(this.page, params);
+            done();
+        },
         onLoad(page, params = {}) {
-            let values = {
-                ...params,
-
-            };
-
             this.loading = true;
+            let url = '/alarm/live'
+            let values = {
+                page: page.currentPage,
+                limit: page.pageSize
+            };
+            if (Object.values(params).length) {
+                url = '/access/source'
+                values = params
+            }
+
+
+
             this.apiFn({
-                url: '/adminApi/Creator/ListCreator',
+                url: url,
                 method: 'post',
-                data: {
-                    pageIndex: page.currentPage,
-                    pageSize: page.pageSize
-                }
+                data: values
             }).then(res => {
-                const data = res.data;
-                this.page.total = data.totalCount;
-                this.data = data.userList;
+                let data = res;
+                if (Object.values(params).length) {
+                    this.data = [data.accessSource]
+                } else {
+                    this.data = data.alarms;
+
+                }
+
+
                 this.loading = false;
 
             });
         },
-    }
+    },
 }
 </script>
+<style scoped lang='scss'>
+</style>
+ 

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>图片下载</title>
+</head>
+<body>
+  <a href="https://www.baidu.com/img/bd_logo1.png" download="bd_logo1.png">
+    a download 属性下载
+  </a>
+  <br /><br />
+  <button onclick="add('https://pic2.zhimg.com/v2-5ec052fff9d691c6a61654ed16440547_400x224.jpg')">
+    非跨域图片
+  </button>
+  <br /><br />
+  <button onclick="add('https://www.baidu.com/img/bd_logo1.png')">
+    跨域图片
+  </button>
+  <br /><br />
+  <script>
+    function add(src) {
+      var filename; //图片名称
+      var filetype; //图片类型
+      var path = src;
+      if (path.indexOf("/") > 0) {
+        var file = path.substring(path.lastIndexOf("/") + 1, path.length);
+        var fileArr = file.toLowerCase().split(".");
+        filename = fileArr[0];
+        filetype = fileArr[1];
+      }
+      var canvas = document.createElement("canvas");
+      var img = document.createElement("img");
+      img.onload = function (e) {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var context = canvas.getContext("2d");
+        context.drawImage(img, 0, 0, img.width, img.height);
+        canvas.toBlob(blob => {
+          var a = document.createElement("a");
+          //a.href : blob:http://127.0.0.1:5500/fdd7df7a-c953-4a0f-a4ec-8bb9d09056d8
+          a.href = window.URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+        }, `image/${filetype}`);
+      };
+      img.setAttribute("crossOrigin", "Anonymous");
+      img.src = src;
+    }
+  </script>
+</body>
+</html>

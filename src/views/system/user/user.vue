@@ -1,7 +1,7 @@
 <template>
     <div class="user">
-        <avue-crud :data="data" v-model="form" :option="option" :page.sync="page" :table-loading="loading" :before-open="beforeOpen" @search-change="searchChange" @on-load="onLoad"
-                   @row-update="rowUpdate" @row-save="rowSave" @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange" @search-reset="searchReset" @row-del="rowDel">
+        <avue-crud :data="data" v-model="form" :option="option" :table-loading="loading" :before-open="beforeOpen" @search-change="searchChange" @on-load="onLoad" @row-update="rowUpdate"
+                   @row-save="rowSave" @current-change="currentChange" @size-change="sizeChange" @refresh-change="refreshChange" @search-reset="searchReset" @row-del="rowDel">
         </avue-crud>
     </div>
 </template>
@@ -10,17 +10,17 @@
 
 
 
-import { getToken } from '@/utils/auth'
-export default {
 
-    name: 'AdminUser',
+export default {
+    name: 'user',
     data() {
         return {
             form: {},
             query: {},
             loading: true,
+            labelWidth: 140,
             page: {
-                pageSize: 999,
+                pageSize: 10,
                 currentPage: 1,
                 total: 0,
             },
@@ -29,62 +29,83 @@ export default {
             option: {
                 align: 'center',
                 viewBtn: true,
-                delBtn: false,
-
-                editBtn: false,
                 column: [
                     {
 
-                        label: '频道号码',
-                        prop: 'channelNumber',
+                        label: 'cardId',
+                        prop: 'cardId',
                         rules: [
                             { required: true, message: "请输入cardId", trigger: "blur" }
                         ],
                         row: true,
-                        search: true
+
+
                     },
                     {
-                        label: '账号',
-                        prop: 'username',
+                        label: 'userToken',
+                        prop: 'userToken',
                         rules: [
                             { required: true, trigger: "blur" }
                         ],
                         row: true,
                     },
                     {
-                        label: '密码',
-                        prop: 'password',
+                        label: 'appToken',
+                        prop: 'appToken',
                         rules: [
                             { required: true, trigger: "blur" }
                         ],
                         row: true,
                     },
-                    {
-                        label: '地址',
-                        prop: 'address',
 
+                    {
+                        label: '昵称',
+                        prop: 'name',
+                        rules: [
+                            { required: true, message: "请输入昵称", trigger: "blur" }
+                        ],
+                        search: true,
                         row: true,
                     },
                     {
-                        label: 'dataPath',
-                        prop: 'dataPath',
-
+                        label: "职位",
+                        prop: "station",
                         row: true,
+                        required: true,
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
                     },
-                    {
-                        label: '连接方式',
-                        prop: 'connectionMethod',
-
-                        row: true,
-                    },
-
                     {
                         label: "类型",
                         prop: "type",
-                        row: true
+                        row: true,
+                        required: true,
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+                    },
+                    {
+                        label: "部门",
+                        prop: "organization",
+                        row: true,
+                        required: true,
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+                    },
+                    {
+                        label: "头像",
+                        prop: "imgUrl",
+                        type: "img",
+                        alone: true,
+                        rules: [
+                            { required: true, trigger: "blur" }
+                        ],
+                        row: true,
+                        required: true,
 
                     },
-
 
 
                 ]
@@ -148,7 +169,7 @@ export default {
         rowSave(row, done, loading) {
 
             this.apiFn({
-                url: '/access/add',
+                url: '/video/addUser',
                 method: 'post',
                 data: {
                     ...row
@@ -206,32 +227,20 @@ export default {
         },
         onLoad(page, params = {}) {
             this.loading = true;
-            let url = '/access'
             let values = {
-                page: page.currentPage,
-                limit: page.pageSize
-            };
-            if (Object.values(params).length) {
-                url = '/access/source'
-                values = params
-            }
+                ...params,
 
+            };
 
 
             this.apiFn({
-                url: url,
+                url: '/video/getUser',
                 method: 'post',
                 data: values
             }).then(res => {
-                let data = res;
-                if (Object.values(params).length) {
-                    this.data = [data.accessSource]
-                } else {
-                    this.data = data.access;
+                const data = res;
 
-                }
-
-
+                this.data = data.users;
                 this.loading = false;
 
             });

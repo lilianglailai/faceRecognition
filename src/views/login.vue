@@ -45,10 +45,9 @@
 <script>
 
 import Cookies from "js-cookie";
-import { encrypt, decrypt } from '@/utils/jsencrypt'
-import sha256 from 'crypto-js/sha256';
-import Base64 from 'crypto-js/enc-base64';
-import initNC from "@/utils/initNC.js";
+
+
+
 export default {
     name: "Login",
     data() {
@@ -98,9 +97,7 @@ export default {
         }
         this.getCookie();
     },
-    mounted() {
-        this.init();
-    },
+
     methods: {
         send(dataNC) {
             this.dataNC = {
@@ -110,24 +107,7 @@ export default {
                 afsSessionId: dataNC.afsSessionId
             }
         },
-        async init() {
-            await this.loadScript('https://g.alicdn.com/sd/nch5/index.js')
-            this.nc = initNC({
-                initHidden: true,
-                el: '#_nc2',
-                callback: (dataNC) => {
-                    this.send(dataNC)
-                },
-                error() {
-                    ElMessageBox.alert('请再次尝试,或者进行反馈', {
-                        // if you want to disable its autofocus
-                        // autofocus: false,
-                        confirmButtonText: 'OK'
-                    })
-                }
-            })
-            this.nc.show()
-        },
+
         loadScript(url) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script')
@@ -144,7 +124,7 @@ export default {
             const rememberMe = Cookies.get('rememberMe')
             this.loginForm = {
                 username: username === undefined ? this.loginForm.username : username,
-                password: password === undefined ? this.loginForm.password : decrypt(password),
+                password: password === undefined ? this.loginForm.password : password,
                 rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
             };
         },
@@ -152,17 +132,11 @@ export default {
 
             this.$refs.loginForm.validate(valid => {
                 if (valid) {
-                    if (!Object.values(this.dataNC).length) {
-                        this.$message({
-                            message: '请完成滑动验证',
-                            type: 'warning'
-                        })
-                        return false
-                    }
+
                     this.loading = true;
                     if (this.loginForm.rememberMe) {
                         Cookies.set("username", this.loginForm.username, { expires: 365 });
-                        Cookies.set("password", encrypt(this.loginForm.password), { expires: 365 });
+                        Cookies.set("password", this.loginForm.password, { expires: 365 });
                         Cookies.set('rememberMe', this.loginForm.rememberMe, { expires: 365 });
                     } else {
                         Cookies.remove("username");
@@ -180,8 +154,10 @@ export default {
                         this.$router.push({ path: this.redirect || "/" }).catch(() => { });
                     }).catch((err) => {
                         this.loading = false;
-                        this.nc.reset()
+
                         if (err.message.includes('验证状态无效')) {
+                            this.nc.reset()
+                            this.dataNC = {}
                             this.$message({
                                 message: '请重新滑动验证',
                                 type: 'warning;'
@@ -373,17 +349,17 @@ export default {
     .login-form {
         /*margin: 10px 0;
 
-                                                                            i {
-                                                                              color: #999;
-                                                                            }
+                                                                                                            i {
+                                                                                                              color: #999;
+                                                                                                            }
 
-                                                                            .el-form-item__content {
-                                                                              width: 100%;
-                                                                            }
+                                                                                                            .el-form-item__content {
+                                                                                                              width: 100%;
+                                                                                                            }
 
-                                                                            .el-form-item {
-                                                                              margin-bottom: 15px;
-                                                                            }*/
+                                                                                                            .el-form-item {
+                                                                                                              margin-bottom: 15px;
+                                                                                                            }*/
 
         .el-input {
             input {
